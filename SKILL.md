@@ -1,5 +1,6 @@
 ---
 name: skill-rules-designer
+version: v1.1
 description: >
   Analyzes an existing Claude Code skill and designs an optimal rules/ file structure.
   Covers three operations: (1) compressing SKILL.md by moving verbose content into rules modules,
@@ -200,3 +201,124 @@ The restructuring is lossless when:
 
 If the user asks you to delete a section with no destination, propose a destination first.
 If no destination makes sense, suggest keeping it in SKILL.md even if it's long.
+
+---
+
+## Evaluating the skill (A/B comparison)
+
+Use this when the user wants to compare two versions of a skill (e.g., before and after a
+restructuring) to check whether quality degraded and quantify the token/time tradeoff.
+
+This section follows the same pattern as skill-creator's eval workflow. Read the agent files
+in `agents/` and the schemas in `references/schemas.md` when running evals.
+
+### Step 1: Set up the workspace
+
+```
+<skill-name>-workspace/
+  ab-comparison/
+    eval-1/
+      version_a/outputs/
+      version_b/outputs/
+    eval-2/
+      version_a/outputs/
+      version_b/outputs/
+    eval-3/
+      version_a/outputs/
+      version_b/outputs/
+```
+
+Create an `eval_metadata.json` in each eval directory:
+
+```json
+{
+  "eval_id": 1,
+  "eval_name": "descriptive-name-here",
+  "prompt": "The eval prompt",
+  "assertions": []
+}
+```
+
+### Step 2: Spawn all runs in the same turn
+
+For each of the 3 test cases (see `evals/evals.json`), spawn two subagents simultaneously:
+- **version_a**: the original (or current) skill
+- **version_b**: the restructured (or candidate) skill
+
+Prompt template for each executor subagent:
+
+```
+Execute this task using the skill at <skill-path>:
+
+Task: <eval prompt>
+Save all output files to: <workspace>/ab-comparison/eval-<ID>/<version>/outputs/
+Also save a transcript.md summarizing your steps to that same outputs/ directory.
+```
+
+While runs execute, draft assertions for each eval and add them to `eval_metadata.json`.
+
+Good assertions for skill-rules-designer check:
+- Whether a plan was presented before files were written
+- Whether at least one rules/*.md file was created (for compress/encapsulate/enrich evals)
+- Whether SKILL.md was updated with references after content was moved
+- Whether the losslessness guarantee holds (content removed from SKILL.md exists in destination)
+- Whether the before/after line count summary was printed
+
+### Step 3: Capture timing
+
+When each subagent completes, save the `total_tokens` and `duration_ms` from the task
+notification immediately to `timing.json` in the run directory. This data is not persisted
+elsewhere.
+
+### Step 4: Grade each run
+
+Spawn a grader subagent per run using `agents/grader.md`. Save results to `grading.json`
+in each run directory (sibling to `outputs/`).
+
+### Step 5: Build benchmark.json
+
+Create `benchmark.json` at the workspace root using the schema in `references/schemas.md`.
+Use `"version_a"` and `"version_b"` as the `configuration` values. Include:
+- Individual run results with pass_rate, tokens, time_seconds
+- `run_summary` with mean ± stddev for both versions and the `delta`
+- `notes` from an analyst pass (read `agents/analyzer.md` — "Analyzing Benchmark Results" section)
+
+### Step 6: Launch the eval viewer
+
+```bash
+nohup python <skill-rules-designer-path>/eval-viewer/generate_review.py \
+  <workspace>/ab-comparison \
+  --skill-name "skill-rules-designer" \
+  --benchmark <workspace>/benchmark.json \
+  > /dev/null 2>&1 &
+```
+
+In headless environments, use `--static <output.html>` instead.
+
+The viewer's **Benchmark tab** shows the AB scorecard prominently:
+- **Quality card** — pass rate comparison with winner highlighted in green
+- **Token card** — token usage comparison (lower = green)
+- **Duration card** — time comparison (lower = green)
+- Aggregate stats table with delta column
+- Per-eval breakdown with assertion-level pass/fail for both versions
+- Analysis notes
+
+### Step 7: Optional blind comparison
+
+For deeper analysis, run the blind comparator on each eval's outputs:
+
+1. Give both outputs to a subagent using `agents/comparator.md` without revealing which is A/B
+2. Save results to `comparison-<eval_id>.json`
+3. Run post-hoc analysis using `agents/analyzer.md` to understand why the winner won
+
+See `references/schemas.md` for the `comparison.json` and `analysis.json` schemas.
+
+---
+
+## Reference files
+
+- `agents/grader.md` — How to evaluate assertions against outputs
+- `agents/comparator.md` — How to do blind A/B comparison between two outputs
+- `agents/analyzer.md` — How to analyze why one version beat another
+- `references/schemas.md` — JSON schemas for evals.json, grading.json, benchmark.json, etc.
+- `evals/evals.json` — The 3 test cases for this skill

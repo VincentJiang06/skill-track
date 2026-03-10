@@ -1,0 +1,49 @@
+{
+  "skill_name": "skill-rules-designer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a skill called `docx` that does a lot of things — it reads .docx files, creates them from scratch, edits them, inserts images, handles TOCs, and exports to PDF. The SKILL.md is 480 lines long and whenever I ask Claude to just read a Word file it loads all the PDF export and image-insertion instructions too. Can you help me restructure it so the token cost is lower for simple read-only tasks? Here's the skill directory: /path/to/docx",
+      "expected_output": "A restructuring plan identifying encapsulate opportunities (PDF export path, image insertion path loaded conditionally), compress candidates (long reference tables), and enrich candidates (templates). After confirmation, writes rules/*.md files and updates SKILL.md.",
+      "files": [],
+      "expectations": [
+        "Presents a restructuring plan before writing any files",
+        "Identifies at least one encapsulate candidate with a specific condition that gates it",
+        "Estimates token savings for the encapsulate operation",
+        "Waits for user confirmation before writing files",
+        "Creates at least one new rules/*.md file",
+        "Updates SKILL.md to remove content that was moved to rules files",
+        "Prints a summary showing before/after line counts"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My `commit` skill has this instruction: 'handle merge conflicts appropriately'. I keep getting inconsistent results — sometimes Claude resolves them, sometimes it stops and asks me, sometimes it just aborts the rebase. Can you look at the skill and harden the vague instructions? The skill is at ~/skills/commit/SKILL.md",
+      "expected_output": "Analyzes the vague instruction, quotes the original text, explains the ambiguity (missing else branch, no consequence defined), and proposes a precise rewrite with explicit decision tree: when to resolve automatically vs escalate to user vs abort.",
+      "files": [],
+      "expectations": [
+        "Reads the SKILL.md before making any suggestions",
+        "Quotes the specific vague instruction verbatim",
+        "Explains precisely why the instruction is ambiguous",
+        "Proposes a concrete rewrite that eliminates the ambiguity",
+        "Does not delete or relocate content — only rewrites in place",
+        "Presents the change as a plan before applying it",
+        "After confirmation, applies the harden edit to the file"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I built a skill for generating weekly status reports. Every time it runs, Claude spends 5 minutes figuring out the report structure from scratch and always comes up with a slightly different format. I want the output to be consistent. The skill is at /Users/me/skills/weekly-report/SKILL.md and it currently just says 'generate a status report summarizing the week'. There's no template anywhere.",
+      "expected_output": "Identifies this as an enrich opportunity. Creates a rules/report-template.md containing the canonical report structure (sections, headings, formatting rules). Updates SKILL.md to reference the template and instruct Claude to use it instead of reasoning from scratch.",
+      "files": [],
+      "expectations": [
+        "Identifies this as an Enrich operation (not Compress or Encapsulate)",
+        "Creates a new rules/report-template.md file with a concrete template structure",
+        "The template contains actual section headers and formatting guidance, not just a description of what it should contain",
+        "Updates SKILL.md to reference the new template file",
+        "Explains what the enrichment replaces (ad-hoc reasoning) and why consistency improves",
+        "Prints a summary showing what was created"
+      ]
+    }
+  ]
+}
