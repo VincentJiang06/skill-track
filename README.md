@@ -1,4 +1,4 @@
-# skill-forge
+# skill-track
 
 **A Git-native iteration tracker for Claude Code skills.**
 
@@ -16,7 +16,7 @@ When you're developing a Claude Code skill, the usual workflow is informal:
 - Lose track of which version was better
 - Have no idea which rules file is causing the issue
 
-skill-forge adds structure to that loop:
+skill-track adds structure to that loop:
 - **Sequential test execution** across defined test cases
 - **Two-layer evaluation**: local rule checks (free) + single batch LLM call (cheap)
 - **Iteration decision**: tells you whether you need a small bug fix (A₁) or a full redesign (B)
@@ -51,16 +51,16 @@ Runs 3–5 targeted test cases against a **single rules file** in isolation. Use
 ## How it works
 
 ```
-1. Point skill-forge at your skill's directory
+1. Point skill-track at your skill's directory
 2. Choose full test or module debug
 3. Select or describe test cases
-4. skill-forge runs each case sequentially
+4. skill-track runs each case sequentially
 5. Results are evaluated in two layers (0 LLM overhead for structural checks)
 6. You get a score + a concrete recommendation:
      [A₁] Debug small fix — patch the bugs, keep core logic
      [B]  Redesign — rethink the approach
      [✓]  Stop — it's ready
-7. You edit your files. skill-forge commits, branches, and tags the new version.
+7. You edit your files. skill-track commits, branches, and tags the new version.
 8. Repeat.
 ```
 
@@ -96,9 +96,9 @@ One LLM call per evaluation round. Never one call per test case.
 
 Anthropic's Skill-Creator handles: test case design, benchmark scoring, auto-improvement.
 
-skill-forge handles what Skill-Creator doesn't:
+skill-track handles what Skill-Creator doesn't:
 
-| | Skill-Creator | skill-forge |
+| | Skill-Creator | skill-track |
 |--|--------------|-------------|
 | Git version history | ❌ | ✅ |
 | Single module debug | ❌ | ✅ |
@@ -106,14 +106,14 @@ skill-forge handles what Skill-Creator doesn't:
 | Full benchmark reporting | ✅ | minimal |
 | Auto-generate improved version | ✅ | ❌ (by design) |
 
-They work well together: use Skill-Creator for deep benchmarks, use skill-forge for day-to-day iteration tracking.
+They work well together: use Skill-Creator for deep benchmarks, use skill-track for day-to-day iteration tracking.
 
 ---
 
 ## File structure
 
 ```
-skill-forge/
+skill-track/
 ├── SKILL.md
 ├── README.md
 └── rules/

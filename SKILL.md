@@ -1,5 +1,5 @@
 ---
-name: skill-forge
+name: skill-track
 version: 1.0.0
 description: >
   Git-native skill iteration tool for testing, evaluating, and tracking versions of Claude Code skills.
