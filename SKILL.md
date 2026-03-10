@@ -283,25 +283,46 @@ Use `"version_a"` and `"version_b"` as the `configuration` values. Include:
 - `run_summary` with mean ± stddev for both versions and the `delta`
 - `notes` from an analyst pass (read `agents/analyzer.md` — "Analyzing Benchmark Results" section)
 
-### Step 6: Launch the eval viewer
+### Step 6: Print the comparison report
 
-```bash
-nohup python <skill-rules-designer-path>/eval-viewer/generate_review.py \
-  <workspace>/ab-comparison \
-  --skill-name "skill-rules-designer" \
-  --benchmark <workspace>/benchmark.json \
-  > /dev/null 2>&1 &
+Print a formatted summary directly in the terminal. No viewer needed.
+
+```
+## A/B Comparison — skill-rules-designer
+─────────────────────────────────────────────────
+
+  Quality (Pass Rate)   Version A: 86%   Version B: 71%   Δ +15%  ✓ A wins
+  Token Usage           Version A: 42,500  Version B: 31,000  Δ +37%  ✗ A costs more
+  Duration              Version A: 95s   Version B: 78s   Δ +22%  ✗ A is slower
+
+─────────────────────────────────────────────────
+Per-eval breakdown:
+
+  Eval 1 — compress-and-encapsulate
+    Version A: 6/7 passed (86%)  │ 95s │ 42,500 tok
+    Version B: 5/7 passed (71%)  │ 80s │ 32,000 tok
+    ✗ Version B missed: "SKILL.md updated with module references"
+
+  Eval 2 — harden-vague-instructions
+    Version A: 7/7 passed (100%) │ 88s │ 39,000 tok
+    Version B: 4/7 passed (57%)  │ 72s │ 28,000 tok
+    ✗ Version B missed: "Quotes the original instruction verbatim"
+                        "Explains the ambiguity precisely"
+                        "Presents change as plan before applying"
+
+  Eval 3 — enrich-with-template
+    Version A: 6/7 passed (86%)  │ 102s │ 46,500 tok
+    Version B: 6/7 passed (86%)  │ 82s │ 33,000 tok
+    ✗ Both missed: "Template contains actual section headers"
+
+─────────────────────────────────────────────────
+Analysis notes:
+  • Version A consistently enforces plan-before-write; Version B skips it under time pressure
+  • Token cost of Version A is higher due to additional losslessness verification steps
+  • Eval 2 shows the largest quality gap — harden workflow needs clearer trigger in Version B
 ```
 
-In headless environments, use `--static <output.html>` instead.
-
-The viewer's **Benchmark tab** shows the AB scorecard prominently:
-- **Quality card** — pass rate comparison with winner highlighted in green
-- **Token card** — token usage comparison (lower = green)
-- **Duration card** — time comparison (lower = green)
-- Aggregate stats table with delta column
-- Per-eval breakdown with assertion-level pass/fail for both versions
-- Analysis notes
+Adapt the actual numbers and missed assertions from the real grading results.
 
 ### Step 7: Optional blind comparison
 

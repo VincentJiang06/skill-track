@@ -130,27 +130,29 @@ v1.1 adds a full eval workflow so you can verify a restructuring actually improv
 ### What's included
 
 ```
-evals/evals.json          — 3 pre-built test cases (compress+encapsulate, harden, enrich)
-agents/grader.md          — assertion grader agent
-agents/comparator.md      — blind A/B comparator agent
-agents/analyzer.md        — post-hoc analyzer agent
-references/schemas.md     — JSON schemas for all eval artifacts
-eval-viewer/              — interactive result viewer with A/B scorecard
+evals/evals.json       — 3 pre-built test cases (compress+encapsulate, harden, enrich)
+agents/grader.md       — assertion grader agent
+agents/comparator.md   — blind A/B comparator agent
+agents/analyzer.md     — post-hoc analyzer agent
+references/schemas.md  — JSON schemas for all eval artifacts
 ```
 
-> **Note:** The `agents/`, `references/schemas.md`, and `eval-viewer/` components are directly based on Anthropic's official [Skill Creator](https://github.com/anthropics/anthropic-agent-skills/tree/main/skills/skill-creator). The grader, comparator, and analyzer agent prompts, the JSON schemas, and the `generate_review.py` server were taken from that project and adapted for this skill's use case. The `viewer.html` was extended with a new A/B Scorecard section at the top of the Benchmark tab.
+> **Note:** The `agents/` and `references/schemas.md` components are directly based on Anthropic's official [Skill Creator](https://github.com/anthropics/anthropic-agent-skills/tree/main/skills/skill-creator). The grader, comparator, and analyzer agent prompts and the JSON schemas were taken from that project and adapted for this skill's use case.
 
-### A/B Scorecard viewer
+### Terminal output
 
-After a comparison run, the viewer's **Benchmark tab** opens with three large metric cards:
+Results print directly in the terminal — no browser or server needed:
 
-| Card | What it shows |
-|------|--------------|
-| **Quality (Pass Rate)** | Pass rate for version A vs B — winner highlighted green |
-| **Token Usage** | Mean tokens per run — lower is green (cost tradeoff) |
-| **Duration** | Mean wall-clock time — lower is green (speed tradeoff) |
-
-Below the cards: aggregate stats table with delta column, per-eval assertion breakdown side-by-side for both versions, and analyst notes.
+```
+## A/B Comparison — skill-rules-designer
+─────────────────────────────────────────────
+  Quality (Pass Rate)  Version A: 86%    Version B: 71%    Δ +15%  ✓ A wins
+  Token Usage          Version A: 42,500  Version B: 31,000  Δ +37%  ✗ A costs more
+  Duration             Version A: 95s    Version B: 78s    Δ +22%  ✗ A is slower
+─────────────────────────────────────────────
+Per-eval breakdown + assertion-level pass/fail
+Analysis notes from post-hoc analyzer
+```
 
 ### Running an A/B comparison
 
@@ -159,15 +161,7 @@ Described in full in `SKILL.md` under "Evaluating the skill". Short version:
 1. Spawn executor subagents for `version_a` and `version_b` on all 3 evals in the same turn
 2. Capture `total_tokens` + `duration_ms` from each subagent notification → `timing.json`
 3. Grade each run with the grader agent → `grading.json`
-4. Assemble `benchmark.json` (schemas in `references/schemas.md`)
-5. Launch the viewer:
-
-```bash
-python eval-viewer/generate_review.py \
-  <workspace>/ab-comparison \
-  --skill-name "skill-rules-designer" \
-  --benchmark <workspace>/benchmark.json
-```
+4. Print the formatted comparison report in the terminal
 
 ---
 
